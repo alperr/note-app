@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attachment List</title>
+</head>
+<body>
+    <h1>Attachments</h1>
+    <button id="uploadBtn">Upload Attachment</button>
+    <ul id="attachmentList"></ul>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+
+        async function fetchAttachments() {
+            try {
+                const response = await fetch(`${API_BASE}/attachments`);
+                const attachments = await response.json();
+                displayAttachments(attachments);
+            } catch (error) {
+                console.error('Error fetching attachments:', error);
+            }
+        }
+
+        function displayAttachments(attachments) {
+            const attachmentList = document.getElementById('attachmentList');
+            attachmentList.innerHTML = '';
+            attachments.forEach(attachment => {
+                const li = document.createElement('li');
+                li.textContent = `${attachment.name} (${attachment.mime_type})`;
+                li.onclick = () => {
+                    // Maybe open or download
+                    fetch(`${API_BASE}/attachments/${attachment.id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            const blob = new Blob([Uint8Array.from(atob(data.content), c => c.charCodeAt(0))], { type: data.mime_type });
+                            const url = URL.createObjectURL(blob);
+                            window.open(url);
+                        });
+                };
+                attachmentList.appendChild(li);
+            });
+        }
+
+        document.getElementById('uploadBtn').onclick = () => {
+            window.open('upload-attachment.html', '_blank');
+        };
+
+        fetchAttachments();
+    </script>
+</body>
+</html>

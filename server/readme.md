@@ -1,0 +1,1 @@
+this is the folder for server of note app

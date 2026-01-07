@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Note</title>
+</head>
+<body>
+    <h1>Edit Note</h1>
+    <form id="noteForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" required><br><br>
+
+        <label for="content">Content:</label>
+        <textarea id="content"></textarea><br><br>
+
+        <label for="attachments">Attachments (JSON array of IDs):</label>
+        <textarea id="attachments"></textarea><br><br>
+
+        <button type="submit">Save</button>
+    </form>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const urlParams = new URLSearchParams(window.location.search);
+        const noteId = urlParams.get('id');
+
+        async function loadNote() {
+            if (noteId) {
+                try {
+                    const response = await fetch(`${API_BASE}/notes/${noteId}`);
+                    const note = await response.json();
+                    document.getElementById('name').value = note.name;
+                    document.getElementById('content').value = note.content;
+                    document.getElementById('attachments').value = JSON.stringify(note.attachments);
+                } catch (error) {
+                    console.error('Error loading note:', error);
+                }
+            } else {
+                document.getElementById('attachments').value = '[]';
+            }
+        }
+
+        document.getElementById('noteForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const content = document.getElementById('content').value;
+            let attachments;
+            try {
+                attachments = JSON.parse(document.getElementById('attachments').value);
+            } catch {
+                attachments = [];
+            }
+
+            const noteData = { name, content, attachments };
+
+            try {
+                let response;
+                if (noteId) {
+                    response = await fetch(`${API_BASE}/notes/${noteId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(noteData)
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/notes`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name })
+                    });
+                    const newNote = await response.json();
+                    // For new note, update with content and attachments
+                    await fetch(`${API_BASE}/notes/${newNote.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(noteData)
+                    });
+                }
+                if (response.ok) {
+                    alert('Note saved!');
+                    window.close();
+                } else {
+                    alert('Error saving note');
+                }
+            } catch (error) {
+                console.error('Error saving note:', error);
+            }
+        };
+
+        loadNote();
+    </script>
+</body>
+</html>

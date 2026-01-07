@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note List</title>
+</head>
+<body>
+    <h1>Notes</h1>
+    <button id="newNoteBtn">New Note</button>
+    <ul id="noteList"></ul>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+
+        async function fetchNotes() {
+            try {
+                const response = await fetch(`${API_BASE}/notes`);
+                const notes = await response.json();
+                displayNotes(notes);
+            } catch (error) {
+                console.error('Error fetching notes:', error);
+            }
+        }
+
+        function displayNotes(notes) {
+            const noteList = document.getElementById('noteList');
+            noteList.innerHTML = '';
+            notes.forEach(note => {
+                const li = document.createElement('li');
+                li.textContent = note.name;
+                li.onclick = () => window.open(`edit-note.html?id=${note.id}`, '_blank');
+                noteList.appendChild(li);
+            });
+        }
+
+        document.getElementById('newNoteBtn').onclick = () => {
+            window.open('edit-note.html', '_blank');
+        };
+
+        fetchNotes();
+    </script>
+</body>
+</html>

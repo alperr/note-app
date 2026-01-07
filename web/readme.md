@@ -1,0 +1,1 @@
+this is the folder for web client of note app
