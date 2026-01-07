@@ -30,7 +30,7 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Created At</th>
+                            <th>Updated At</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -46,10 +46,10 @@
                 nameCell.textContent = note.name;
                 row.appendChild(nameCell);
 
-                const createdCell = document.createElement('td');
-                const date = note.created_at ? new Date(note.created_at) : null;
-                createdCell.textContent = date && !isNaN(date) ? date.toLocaleString() : 'Unknown';
-                row.appendChild(createdCell);
+                const updatedCell = document.createElement('td');
+                const date = note.updated_at ? new Date(note.updated_at) : null;
+                updatedCell.textContent = date && !isNaN(date) ? date.toLocaleString() : 'Unknown';
+                row.appendChild(updatedCell);
 
                 row.onclick = () => window.location.href = `edit-note.html?id=${note.id}`;
                 tbody.appendChild(row);

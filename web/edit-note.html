@@ -8,16 +8,21 @@
 </head>
 <body class="p-4">
     <form id="noteForm" class="mb-4">
-        <input type="text" id="name" class="form-control" required>
+        <div class="row mb-3">
+            <div class="col-6">
+                <input type="text" id="name" class="form-control" required>
+            </div>
+            <div class="col-6">
+                <button type="button" id="manageAttachments" class="btn btn-secondary w-100">Manage Attachments</button>
+            </div>
+        </div>
 
         <textarea id="content" class="form-control" rows="10"></textarea>
-
-        <button type="button" id="manageAttachments">Manage Attachments</button><br><br>
 
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
 
-    <div class="modal fade" id="attachmentsModal" tabindex="-1">
+    <div class="modal" id="attachmentsModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -62,6 +67,7 @@
             } else {
                 currentAttachments = [];
             }
+            document.getElementById('manageAttachments').textContent = `Manage Attachments (${currentAttachments.length})`;
         }
 
         document.getElementById('noteForm').onsubmit = async (e) => {
@@ -170,6 +176,7 @@
         function saveAttachments() {
             const checkboxes = document.querySelectorAll('#attachmentsList input[type="checkbox"]');
             currentAttachments = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            document.getElementById('manageAttachments').textContent = `Manage Attachments (${currentAttachments.length})`;
             const modal = bootstrap.Modal.getInstance(document.getElementById('attachmentsModal'));
             modal.hide();
         }
