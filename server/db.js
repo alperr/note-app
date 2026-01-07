@@ -36,10 +36,16 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS lists (
       id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
       notes TEXT,
       saved_at INTEGER
     )
   `);
+  db.run('ALTER TABLE lists ADD COLUMN name TEXT', function(err) {
+    if (err) {
+      console.log('Column name already exists or error:', err.message);
+    }
+  });
 });
 
 module.exports = db;

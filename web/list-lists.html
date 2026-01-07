@@ -3,29 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Note List</title>
+    <title>List List</title>
     <link href="bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="p-4">
-    <button id="newNoteBtn" class="btn btn-primary mb-3">New Note</button>
-    <div id="noteList"></div>
+    <button id="newListBtn" class="btn btn-primary mb-3">New List</button>
+    <div id="listList"></div>
 
     <script>
         const API_BASE = 'http://localhost:3000';
 
-        async function fetchNotes() {
+        async function fetchLists() {
             try {
-                const response = await fetch(`${API_BASE}/notes`);
-                const notes = await response.json();
-                displayNotes(notes);
+                const response = await fetch(`${API_BASE}/lists`);
+                const lists = await response.json();
+                displayLists(lists);
             } catch (error) {
-                console.error('Error fetching notes:', error);
+                console.error('Error fetching lists:', error);
             }
         }
 
-        function displayNotes(notes) {
-            const noteList = document.getElementById('noteList');
-            noteList.innerHTML = `
+        function displayLists(lists) {
+            const listList = document.getElementById('listList');
+            listList.innerHTML = `
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
@@ -37,30 +37,30 @@
                     </tbody>
                 </table>
             `;
-            const tbody = noteList.querySelector('tbody');
-            notes.forEach(note => {
+            const tbody = listList.querySelector('tbody');
+            lists.forEach(list => {
                 const row = document.createElement('tr');
                 row.style.cursor = 'pointer';
 
                 const nameCell = document.createElement('td');
-                nameCell.textContent = note.name;
+                nameCell.textContent = list.name;
                 row.appendChild(nameCell);
 
                 const updatedCell = document.createElement('td');
-                const date = note.updated_at ? new Date(note.updated_at) : null;
+                const date = list.updated_at ? new Date(list.updated_at) : null;
                 updatedCell.textContent = date && !isNaN(date) ? date.toLocaleString() : 'Unknown';
                 row.appendChild(updatedCell);
 
-                row.onclick = () => window.location.href = `edit-note.html?id=${note.id}`;
+                row.onclick = () => window.location.href = `edit-list.html?id=${list.id}`;
                 tbody.appendChild(row);
             });
         }
 
-        document.getElementById('newNoteBtn').onclick = () => {
-            window.location.href = 'edit-note.html';
+        document.getElementById('newListBtn').onclick = () => {
+            window.location.href = 'edit-list.html';
         };
 
-        fetchNotes();
+        fetchLists();
     </script>
 <script src="bootstrap.bundle.min.js"></script>
 </body>
