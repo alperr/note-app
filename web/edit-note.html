@@ -9,24 +9,30 @@
 <body class="p-4">
     <h1 class="mb-4">Edit Note</h1>
     <form id="noteForm" class="mb-4">
-        <label for="name" class="form-label">Name:</label>
-        <input type="text" id="name" required><br><br>
+        <input type="text" id="name" class="form-control" required>
 
-        <label for="content" class="form-label">Content:</label>
-        <textarea id="content"></textarea><br><br>
+        <textarea id="content" class="form-control" rows="10"></textarea>
 
         <button type="button" id="manageAttachments">Manage Attachments</button><br><br>
 
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
 
-    <div id="attachmentsModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Manage Attachments</h2>
-            <div id="attachmentsList"></div>
-            <button id="saveAttachments" class="btn btn-primary me-2">Save</button>
-            <button id="cancelAttachments" class="btn btn-secondary">Cancel</button>
+    <div class="modal fade" id="attachmentsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Attachments</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="attachmentsList"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveAttachments">Save</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -37,7 +43,7 @@
             const k = 1024;
             const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         }
         const urlParams = new URLSearchParams(window.location.search);
         const noteId = urlParams.get('id');
@@ -150,25 +156,21 @@
 
                     tbody.appendChild(row);
                 });
-                document.getElementById('attachmentsModal').style.display = 'block';
+                const modal = new bootstrap.Modal(document.getElementById('attachmentsModal'));
+                modal.show();
             } catch (error) {
                 console.error('Error loading attachments:', error);
             }
         }
 
-        function closeAttachmentsModal() {
-            document.getElementById('attachmentsModal').style.display = 'none';
-        }
-
         function saveAttachments() {
             const checkboxes = document.querySelectorAll('#attachmentsList input[type="checkbox"]');
             currentAttachments = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
-            closeAttachmentsModal();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('attachmentsModal'));
+            modal.hide();
         }
 
         document.getElementById('manageAttachments').onclick = openAttachmentsModal;
-        document.querySelector('.close').onclick = closeAttachmentsModal;
-        document.getElementById('cancelAttachments').onclick = closeAttachmentsModal;
         document.getElementById('saveAttachments').onclick = saveAttachments;
 
         loadNote();

@@ -54,7 +54,7 @@ app.delete('/notes/:id', (req, res) => {
 
 // 4. list_notes
 app.get('/notes', (req, res) => {
-  db.all('SELECT id, name, saved_at as created_at FROM notes', [], (err, rows) => {
+  db.all('SELECT id, name, saved_at as created_at FROM notes ORDER BY saved_at DESC', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
