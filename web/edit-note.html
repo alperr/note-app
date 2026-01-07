@@ -1,29 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Note</title>
+    <link href="bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Edit Note</h1>
-    <form id="noteForm">
-        <label for="name">Name:</label>
+<body class="p-4">
+    <h1 class="mb-4">Edit Note</h1>
+    <form id="noteForm" class="mb-4">
+        <label for="name" class="form-label">Name:</label>
         <input type="text" id="name" required><br><br>
 
-        <label for="content">Content:</label>
+        <label for="content" class="form-label">Content:</label>
         <textarea id="content"></textarea><br><br>
 
-        <label for="attachments">Attachments (JSON array of IDs):</label>
-        <textarea id="attachments"></textarea><br><br>
+        <button type="button" id="manageAttachments">Manage Attachments</button><br><br>
 
-        <button type="submit">Save</button>
+        <button type="submit" class="btn btn-primary">Save</button>
     </form>
+
+    <div id="attachmentsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Manage Attachments</h2>
+            <div id="attachmentsList"></div>
+            <button id="saveAttachments" class="btn btn-primary me-2">Save</button>
+            <button id="cancelAttachments" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
 
     <script>
         const API_BASE = 'http://localhost:3000';
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
         const urlParams = new URLSearchParams(window.location.search);
         const noteId = urlParams.get('id');
+        let currentAttachments = [];
 
         async function loadNote() {
             if (noteId) {
@@ -32,12 +50,12 @@
                     const note = await response.json();
                     document.getElementById('name').value = note.name;
                     document.getElementById('content').value = note.content;
-                    document.getElementById('attachments').value = JSON.stringify(note.attachments);
+                    currentAttachments = note.attachments || [];
                 } catch (error) {
                     console.error('Error loading note:', error);
                 }
             } else {
-                document.getElementById('attachments').value = '[]';
+                currentAttachments = [];
             }
         }
 
@@ -45,12 +63,7 @@
             e.preventDefault();
             const name = document.getElementById('name').value;
             const content = document.getElementById('content').value;
-            let attachments;
-            try {
-                attachments = JSON.parse(document.getElementById('attachments').value);
-            } catch {
-                attachments = [];
-            }
+            const attachments = currentAttachments;
 
             const noteData = { name, content, attachments };
 
@@ -78,7 +91,7 @@
                 }
                 if (response.ok) {
                     alert('Note saved!');
-                    window.close();
+                    window.location.href = 'note-list.html';
                 } else {
                     alert('Error saving note');
                 }
@@ -87,7 +100,79 @@
             }
         };
 
+        async function openAttachmentsModal() {
+            try {
+                const response = await fetch(`${API_BASE}/attachments`);
+                const attachments = await response.json();
+                const list = document.getElementById('attachmentsList');
+                list.innerHTML = `
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                `;
+                const tbody = list.querySelector('tbody');
+                attachments.forEach(att => {
+                    const row = document.createElement('tr');
+                    const checkboxCell = document.createElement('td');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = att.id;
+                    checkbox.checked = currentAttachments.includes(att.id);
+                    checkboxCell.appendChild(checkbox);
+                    row.appendChild(checkboxCell);
+
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = att.name;
+                    row.appendChild(nameCell);
+
+                    const typeCell = document.createElement('td');
+                    typeCell.textContent = att.mime_type;
+                    row.appendChild(typeCell);
+
+                    const sizeCell = document.createElement('td');
+                    sizeCell.textContent = formatBytes(att.size);
+                    row.appendChild(sizeCell);
+
+                    const createdCell = document.createElement('td');
+                    const date = att.saved_at ? new Date(att.saved_at) : null;
+                    createdCell.textContent = date && !isNaN(date) ? date.toLocaleString() : 'Unknown';
+                    row.appendChild(createdCell);
+
+                    tbody.appendChild(row);
+                });
+                document.getElementById('attachmentsModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading attachments:', error);
+            }
+        }
+
+        function closeAttachmentsModal() {
+            document.getElementById('attachmentsModal').style.display = 'none';
+        }
+
+        function saveAttachments() {
+            const checkboxes = document.querySelectorAll('#attachmentsList input[type="checkbox"]');
+            currentAttachments = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            closeAttachmentsModal();
+        }
+
+        document.getElementById('manageAttachments').onclick = openAttachmentsModal;
+        document.querySelector('.close').onclick = closeAttachmentsModal;
+        document.getElementById('cancelAttachments').onclick = closeAttachmentsModal;
+        document.getElementById('saveAttachments').onclick = saveAttachments;
+
         loadNote();
     </script>
+<script src="bootstrap.bundle.min.js"></script>
 </body>
 </html>

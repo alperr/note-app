@@ -1,17 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attachment List</title>
+    <link href="bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Attachments</h1>
-    <button id="uploadBtn">Upload Attachment</button>
-    <ul id="attachmentList"></ul>
+<body class="p-4">
+    <h1 class="mb-4">Attachments</h1>
+    <button id="uploadBtn" class="btn btn-primary mb-3">Upload Attachment</button>
+    <div id="attachmentList"></div>
 
     <script>
         const API_BASE = 'http://localhost:3000';
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
 
         async function fetchAttachments() {
             try {
@@ -25,29 +34,61 @@
 
         function displayAttachments(attachments) {
             const attachmentList = document.getElementById('attachmentList');
-            attachmentList.innerHTML = '';
+            attachmentList.innerHTML = `
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            `;
+            const tbody = attachmentList.querySelector('tbody');
             attachments.forEach(attachment => {
-                const li = document.createElement('li');
-                li.textContent = `${attachment.name} (${attachment.mime_type})`;
-                li.onclick = () => {
-                    // Maybe open or download
+                const row = document.createElement('tr');
+                row.style.cursor = 'pointer';
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = attachment.name;
+                row.appendChild(nameCell);
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = attachment.mime_type;
+                row.appendChild(typeCell);
+
+                const sizeCell = document.createElement('td');
+                sizeCell.textContent = formatBytes(attachment.size);
+                row.appendChild(sizeCell);
+
+                const createdCell = document.createElement('td');
+                const date = attachment.saved_at ? new Date(attachment.saved_at) : null;
+                createdCell.textContent = date && !isNaN(date) ? date.toLocaleString() : 'Unknown';
+                row.appendChild(createdCell);
+
+                row.onclick = () => {
                     fetch(`${API_BASE}/attachments/${attachment.id}`)
                         .then(res => res.json())
                         .then(data => {
                             const blob = new Blob([Uint8Array.from(atob(data.content), c => c.charCodeAt(0))], { type: data.mime_type });
                             const url = URL.createObjectURL(blob);
-                            window.open(url);
+                            window.location.href = url;
                         });
                 };
-                attachmentList.appendChild(li);
+                tbody.appendChild(row);
             });
         }
 
         document.getElementById('uploadBtn').onclick = () => {
-            window.open('upload-attachment.html', '_blank');
+            window.location.href = 'upload-attachment.html';
         };
 
         fetchAttachments();
     </script>
+<script src="bootstrap.bundle.min.js"></script>
 </body>
 </html>

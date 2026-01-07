@@ -54,7 +54,7 @@ app.delete('/notes/:id', (req, res) => {
 
 // 4. list_notes
 app.get('/notes', (req, res) => {
-  db.all('SELECT id, name FROM notes', [], (err, rows) => {
+  db.all('SELECT id, name, saved_at as created_at FROM notes', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
@@ -100,7 +100,7 @@ app.delete('/attachments/:id', (req, res) => {
 
 // 8. list_attachments
 app.get('/attachments', (req, res) => {
-  db.all('SELECT id, name, mime_type FROM attachments', [], (err, rows) => {
+  db.all('SELECT id, name, mime_type, length(content) as size, saved_at FROM attachments', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });

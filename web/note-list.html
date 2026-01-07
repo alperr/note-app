@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note List</title>
+    <link href="bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Notes</h1>
-    <button id="newNoteBtn">New Note</button>
-    <ul id="noteList"></ul>
+<body class="p-4">
+    <h1 class="mb-4">Notes</h1>
+    <button id="newNoteBtn" class="btn btn-primary mb-3">New Note</button>
+    <div id="noteList"></div>
 
     <script>
         const API_BASE = 'http://localhost:3000';
@@ -25,12 +26,34 @@
 
         function displayNotes(notes) {
             const noteList = document.getElementById('noteList');
-            noteList.innerHTML = '';
+            noteList.innerHTML = `
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            `;
+            const tbody = noteList.querySelector('tbody');
             notes.forEach(note => {
-                const li = document.createElement('li');
-                li.textContent = note.name;
-                li.onclick = () => window.open(`edit-note.html?id=${note.id}`, '_blank');
-                noteList.appendChild(li);
+                const row = document.createElement('tr');
+                row.style.cursor = 'pointer';
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = note.name;
+                row.appendChild(nameCell);
+
+                const createdCell = document.createElement('td');
+                const date = note.created_at ? new Date(note.created_at) : null;
+                createdCell.textContent = date && !isNaN(date) ? date.toLocaleString() : 'Unknown';
+                row.appendChild(createdCell);
+
+                row.onclick = () => window.location.href = `edit-note.html?id=${note.id}`;
+                tbody.appendChild(row);
             });
         }
 
@@ -40,5 +63,6 @@
 
         fetchNotes();
     </script>
+<script src="bootstrap.bundle.min.js"></script>
 </body>
 </html>
